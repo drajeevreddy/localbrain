@@ -93,7 +93,7 @@ export default function SettingsPage() {
         body: JSON.stringify({
           provider_configs: configs.map((c) => ({
             name: c.name,
-            apiKey: c.apiKey || undefined,
+            apiKey: c.apiKey && c.apiKey !== '••••••••' ? c.apiKey : undefined,
             enabled: c.enabled,
             model: c.model,
           })),
