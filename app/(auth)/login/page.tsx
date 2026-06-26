@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
@@ -12,15 +11,29 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
+  const supabaseRef = useRef<Awaited<ReturnType<typeof import('@/lib/supabase/client').createClient>> | null>(null)
+
+  useEffect(() => {
+    setMounted(true)
+    import('@/lib/supabase/client').then(({ createClient }) => {
+      supabaseRef.current = createClient()
+    }).catch(() => {})
+  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (!supabaseRef.current) {
+      setError('Supabase not configured')
+      setLoading(false)
+      return
+    }
+
+    const { error } = await supabaseRef.current.auth.signInWithPassword({ email, password })
 
     if (error) {
       setError(error.message)
@@ -31,7 +44,8 @@ export default function LoginPage() {
   }
 
   const handleGoogleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
+    if (!supabaseRef.current) return
+    await supabaseRef.current.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/api/auth/callback` },
     })
@@ -44,7 +58,7 @@ export default function LoginPage() {
           <h1 className="text-2xl font-medium text-[#fcfdff] mb-2">Sign in to LocalMind</h1>
           <p className="text-sm text-[#a1a4a5]">
             Don&apos;t have an account?{' '}
-            <Link href="/(auth)/signup" className="text-[#3b9eff] hover:underline">
+            <Link href="/signup" className="text-[#3b9eff] hover:underline">
               Sign up
             </Link>
           </p>
@@ -70,7 +84,7 @@ export default function LoginPage() {
 
           {error && <p className="text-sm text-[#ff2047]">{error}</p>}
 
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading || !mounted}>
             {loading ? 'Signing in...' : 'Sign in'}
           </Button>
         </form>
@@ -84,7 +98,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
+        <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={!mounted}>
           Continue with Google
         </Button>
       </div>

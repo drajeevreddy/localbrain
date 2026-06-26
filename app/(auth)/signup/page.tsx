@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
@@ -13,15 +12,29 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
+  const supabaseRef = useRef<Awaited<ReturnType<typeof import('@/lib/supabase/client').createClient>> | null>(null)
+
+  useEffect(() => {
+    setMounted(true)
+    import('@/lib/supabase/client').then(({ createClient }) => {
+      supabaseRef.current = createClient()
+    }).catch(() => {})
+  }, [])
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const { error } = await supabase.auth.signUp({ email, password })
+    if (!supabaseRef.current) {
+      setError('Supabase not configured')
+      setLoading(false)
+      return
+    }
+
+    const { error } = await supabaseRef.current.auth.signUp({ email, password })
 
     if (error) {
       setError(error.message)
@@ -33,7 +46,8 @@ export default function SignupPage() {
   }
 
   const handleGoogleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
+    if (!supabaseRef.current) return
+    await supabaseRef.current.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/api/auth/callback` },
     })
@@ -47,7 +61,7 @@ export default function SignupPage() {
           <p className="text-sm text-[#a1a4a5]">
             We sent a confirmation link to <span className="text-[#fcfdff]">{email}</span>
           </p>
-          <Button variant="ghost" className="mt-6" onClick={() => router.push('/(auth)/login')}>
+          <Button variant="ghost" className="mt-6" onClick={() => router.push('/login')}>
             Back to sign in
           </Button>
         </div>
@@ -62,7 +76,7 @@ export default function SignupPage() {
           <h1 className="text-2xl font-medium text-[#fcfdff] mb-2">Create your account</h1>
           <p className="text-sm text-[#a1a4a5]">
             Already have an account?{' '}
-            <Link href="/(auth)/login" className="text-[#3b9eff] hover:underline">
+            <Link href="/login" className="text-[#3b9eff] hover:underline">
               Sign in
             </Link>
           </p>
@@ -88,7 +102,7 @@ export default function SignupPage() {
 
           {error && <p className="text-sm text-[#ff2047]">{error}</p>}
 
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading || !mounted}>
             {loading ? 'Creating account...' : 'Sign up'}
           </Button>
         </form>
@@ -102,7 +116,7 @@ export default function SignupPage() {
           </div>
         </div>
 
-        <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
+        <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={!mounted}>
           Continue with Google
         </Button>
       </div>

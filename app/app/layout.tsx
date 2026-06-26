@@ -142,7 +142,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const handleLogout = async () => {
     const supabase = getSupabase()
     if (supabase) await supabase.auth.signOut()
-    router.push('/(auth)/login')
+    router.push('/login')
   }
 
   return (

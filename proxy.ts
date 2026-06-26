@@ -38,11 +38,11 @@ export async function proxy(request: NextRequest) {
       request.nextUrl.pathname.startsWith('/api'))
   ) {
     const url = request.nextUrl.clone()
-    url.pathname = '/(auth)/login'
+    url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  if (user && request.nextUrl.pathname.startsWith('/(auth)')) {
+  if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup')) {
     const url = request.nextUrl.clone()
     url.pathname = '/app'
     return NextResponse.redirect(url)
@@ -52,5 +52,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/app/:path*', '/api/:path*', '/(auth)/:path*'],
+  matcher: ['/app/:path*', '/api/:path*', '/login', '/signup'],
 }

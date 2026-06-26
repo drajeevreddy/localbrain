@@ -11,11 +11,11 @@ export default function Home() {
       <nav className="flex items-center justify-between px-8 h-16 border-b border-[rgba(255,255,255,0.06)]">
         <span className="text-lg font-semibold tracking-tight">LocalMind</span>
         <div className="flex items-center gap-4">
-          <Link href="/(auth)/login" className="text-sm text-[#a1a4a5] hover:text-[#fcfdff] transition-colors">
+          <Link href="/login" className="text-sm text-[#a1a4a5] hover:text-[#fcfdff] transition-colors">
             Sign in
           </Link>
           <Link
-            href="/(auth)/signup"
+            href="/signup"
             className="h-9 px-4 text-sm font-medium bg-white text-black rounded-md inline-flex items-center hover:bg-[#f1f7fe] transition-colors"
           >
             Get started
@@ -33,7 +33,7 @@ export default function Home() {
           Bring your own LLM keys — we support 10+ providers with free tiers.
         </p>
         <Link
-          href="/(auth)/signup"
+          href="/signup"
           className="inline-flex h-11 px-6 text-sm font-medium bg-white text-black rounded-lg items-center hover:bg-[#f1f7fe] transition-colors"
         >
           Start for free
