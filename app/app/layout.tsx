@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
 import NoteEditor from '@/components/notes/NoteEditor'
+import NoteTemplates from '@/components/notes/NoteTemplates'
+import StudyTools from '@/components/study/StudyTools'
+import PomodoroTimer from '@/components/study/PomodoroTimer'
 import ToastProvider from '@/components/ui/ToastProvider'
 import toast from 'react-hot-toast'
 
@@ -230,6 +233,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Button variant="primary" size="sm" className="w-full" onClick={handleNewNote}>
           + New Note
         </Button>
+        <NoteTemplates onSelect={async (title, content) => {
+          const supabase = getSupabase()
+          if (!supabase) return
+          const { data: { user } } = await supabase.auth.getUser()
+          if (!user) return
+          const { data } = await supabase.from('notes').insert({ user_id: user.id, title, content }).select().single()
+          if (data) { setNotes([data, ...notes]); setSelectedNote(data); setSidebarOpen(false) }
+        }} />
         {notes.length > 0 && (
           <Button
             variant="ghost"
@@ -341,9 +352,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-auto">
           {selectedNote ? (
-            <NoteEditor note={selectedNote} onSave={handleSaveNote} onDelete={() => handleDeleteNote()} />
+            <div className="flex flex-col h-full">
+              <div className="flex-1 overflow-auto">
+                <NoteEditor note={selectedNote} onSave={handleSaveNote} onDelete={() => handleDeleteNote()} />
+              </div>
+              {selectedNote.content.trim().length > 50 && (
+                <StudyTools content={selectedNote.content} />
+              )}
+            </div>
           ) : (
             <div className="flex-1 flex items-center justify-center h-full text-[#464a4d] text-sm">
               Select a note or create a new one
@@ -352,6 +370,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {!selectedNote && children}
+      </div>
+
+      {/* Floating Pomodoro timer - hidden on mobile */}
+      <div className="fixed bottom-4 right-4 z-30 hidden md:block">
+        <div className="bg-[#0a0a0c] border border-[rgba(255,255,255,0.14)] rounded-xl p-3 shadow-xl">
+          <PomodoroTimer />
+        </div>
       </div>
     </div>
   )
