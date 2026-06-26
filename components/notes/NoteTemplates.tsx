@@ -37,7 +37,7 @@ export default function NoteTemplates({ onSelect }: NoteTemplatesProps) {
       </Button>
 
       {open && (
-        <div className="absolute bottom-full left-0 right-0 mb-1 bg-[#0a0a0c] border border-[rgba(255,255,255,0.14)] rounded-lg p-1 z-50 animate-fade-in-up shadow-xl max-h-[60vh] overflow-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-[#0a0a0c] border border-[rgba(255,255,255,0.14)] rounded-lg p-1 z-50 animate-fade-in-up shadow-xl max-h-[60vh] overflow-auto">
           {templates.map((group) => (
             <div key={group.category}>
               <div className="px-3 py-1.5 text-[10px] font-medium text-[#464a4d] uppercase tracking-wider">
