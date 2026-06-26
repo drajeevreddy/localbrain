@@ -1,14 +1,2 @@
-[project]
-id = "lpgnkxtaecrbejhnvoou"
-
 [auth]
 site_url = "https://www.localbrain.in"
-allowed_redirect_urls = [
-  "https://www.localbrain.in",
-  "https://localbrain.in",
-  "http://localhost:3000"
-]
-
-[auth.email]
-enable_signup = true
-double_confirm_changes = true

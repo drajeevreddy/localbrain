@@ -10,11 +10,6 @@ interface Message {
   sources?: Array<{ index: number; title: string; preview: string }>
 }
 
-interface ChatWindowProps {
-  provider: string
-  apiKey: string
-}
-
 const STORAGE_KEY = 'localbrain-chat-history'
 
 function loadHistory(): Message[] {
@@ -34,7 +29,7 @@ function saveHistory(messages: Message[]) {
   } catch {}
 }
 
-export default function ChatWindow({ provider, apiKey }: ChatWindowProps) {
+export default function ChatWindow() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -64,8 +59,6 @@ export default function ChatWindow({ provider, apiKey }: ChatWindowProps) {
         body: JSON.stringify({
           query: input,
           messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
-          provider,
-          apiKey,
         }),
       })
 
@@ -112,7 +105,7 @@ export default function ChatWindow({ provider, apiKey }: ChatWindowProps) {
     } finally {
       setLoading(false)
     }
-  }, [input, loading, messages, provider, apiKey])
+  }, [input, loading, messages])
 
   const clearHistory = () => {
     setMessages([])

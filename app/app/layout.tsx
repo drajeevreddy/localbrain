@@ -140,8 +140,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const handleIngest = async (noteId?: string) => {
     const targetNote = noteId ? notes.find((n) => n.id === noteId) : selectedNote
-    if (!targetNote || !settings.apiKey) {
-      toast.error('Configure an LLM provider in Settings first')
+    if (!targetNote) {
+      toast.error('No note selected')
       return
     }
 
@@ -151,10 +151,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          noteId: targetNote.id,
           title: targetNote.title,
           content: targetNote.content,
-          provider: settings.provider,
-          apiKey: 'placeholder',
         }),
       })
 
@@ -192,10 +191,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            noteId: note.id,
             title: note.title,
             content: note.content,
-            provider: settings.provider,
-            apiKey: 'placeholder',
           }),
         })
         if (res.ok) successCount++

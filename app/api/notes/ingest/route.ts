@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
+import { decrypt } from '@/lib/crypto'
 import { callLLM, callEmbedding } from '@/lib/llm/adapter'
 import type { ProviderName } from '@/lib/llm/adapter'
 
@@ -28,7 +29,7 @@ async function extractEntities(
           content:
             'Extract key concepts, entities, and tags from the text. Return ONLY a JSON array of objects with "label" (string) and "type" (one of: concept, entity, tag). Maximum 15 items. No explanation.',
         },
-        { role: 'user', content },
+        { role: 'user', content: content.slice(0, 3000) },
       ],
       { provider, apiKey }
     )
@@ -43,36 +44,69 @@ async function extractEntities(
   }
 }
 
+async function getUserApiKey(supabase: Awaited<ReturnType<typeof createClient>>, userId: string): Promise<{ provider: ProviderName; apiKey: string } | null> {
+  const { data } = await supabase
+    .from('user_settings')
+    .select('provider_configs, default_provider')
+    .eq('user_id', userId)
+    .single()
+
+  if (!data) return null
+
+  const configs = Array.isArray(data.provider_configs) ? data.provider_configs : []
+  const active = configs.find((c: { enabled?: boolean; apiKey?: string }) => c.enabled && c.apiKey)
+
+  if (!active) return null
+
+  try {
+    return { provider: active.name || data.default_provider, apiKey: decrypt(active.apiKey) }
+  } catch {
+    return null
+  }
+}
+
 export async function POST(request: NextRequest) {
   const { user, error } = await getAuthenticatedUser()
   if (error) return error
 
   const body = await request.json()
-  const { title, content, provider, apiKey } = body as {
-    title: string
-    content: string
-    provider: ProviderName
-    apiKey: string
+  const { noteId, title, content } = body as {
+    noteId?: string
+    title?: string
+    content?: string
   }
 
-  if (!content || !provider || !apiKey) {
-    return Response.json({ error: 'Missing required fields' }, { status: 400 })
+  if (!content) {
+    return Response.json({ error: 'Missing content' }, { status: 400 })
   }
 
   const supabase = await createClient()
 
-  // 1. Save note
-  const { data: note, error: noteError } = await supabase
-    .from('notes')
-    .insert({ user_id: user!.id, title: title || 'Untitled', content })
-    .select()
-    .single()
-
-  if (noteError) {
-    return Response.json({ error: noteError.message }, { status: 500 })
+  const creds = await getUserApiKey(supabase, user!.id)
+  if (!creds) {
+    return Response.json({ error: 'No LLM provider configured. Go to Settings and add an API key.' }, { status: 400 })
   }
 
-  // 2. Chunk and embed
+  const { provider, apiKey } = creds
+
+  let noteIdFinal = noteId
+
+  if (!noteIdFinal) {
+    const { data: note, error: noteError } = await supabase
+      .from('notes')
+      .insert({ user_id: user!.id, title: title || 'Untitled', content })
+      .select()
+      .single()
+
+    if (noteError) {
+      return Response.json({ error: noteError.message }, { status: 500 })
+    }
+    noteIdFinal = note.id
+  }
+
+  // Delete old chunks for this note to allow re-ingestion
+  await supabase.from('chunks').delete().eq('note_id', noteIdFinal)
+
   const chunks = chunkText(content)
   const chunkInserts = []
 
@@ -80,14 +114,14 @@ export async function POST(request: NextRequest) {
     try {
       const embedding = await callEmbedding(chunkText_, { provider, apiKey })
       chunkInserts.push({
-        note_id: note.id,
+        note_id: noteIdFinal,
         user_id: user!.id,
         content: chunkText_,
         embedding: JSON.stringify(embedding),
       })
     } catch {
       chunkInserts.push({
-        note_id: note.id,
+        note_id: noteIdFinal,
         user_id: user!.id,
         content: chunkText_,
         embedding: null,
@@ -99,7 +133,6 @@ export async function POST(request: NextRequest) {
     await supabase.from('chunks').insert(chunkInserts)
   }
 
-  // 3. Extract entities and build graph
   const entities = await extractEntities(content, provider, apiKey)
   const nodeIds: string[] = []
 
@@ -128,7 +161,6 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // 4. Create edges between co-occurring concepts
   const edges: Array<{
     user_id: string
     source_node_id: string
@@ -154,7 +186,7 @@ export async function POST(request: NextRequest) {
   }
 
   return Response.json({
-    note,
+    noteId: noteIdFinal,
     chunksCreated: chunkInserts.length,
     entitiesExtracted: entities.length,
     edgesCreated: edges.length,
