@@ -93,9 +93,9 @@ export default function ChatWindow({ provider, apiKey }: ChatWindowProps) {
         )}
 
         {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in-up`}>
             <div
-              className={`max-w-[80%] rounded-xl px-4 py-3 text-sm ${
+              className={`max-w-[80%] rounded-xl px-4 py-3 text-sm transition-all duration-200 ${
                 msg.role === 'user'
                   ? 'bg-[#101012] text-[#fcfdff] border border-[rgba(255,255,255,0.14)]'
                   : 'bg-[#0a0a0c] text-[rgba(252,253,255,0.86)]'
@@ -117,9 +117,11 @@ export default function ChatWindow({ provider, apiKey }: ChatWindowProps) {
         ))}
 
         {loading && (
-          <div className="flex justify-start">
-            <div className="bg-[#0a0a0c] rounded-xl px-4 py-3 text-sm text-[#464a4d]">
-              Thinking...
+          <div className="flex justify-start animate-fade-in-up">
+            <div className="bg-[#0a0a0c] rounded-xl px-4 py-3 text-sm flex items-center gap-1.5">
+              <span className="typing-dot" />
+              <span className="typing-dot" />
+              <span className="typing-dot" />
             </div>
           </div>
         )}
@@ -135,7 +137,7 @@ export default function ChatWindow({ provider, apiKey }: ChatWindowProps) {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
             placeholder="Ask about your notes..."
-            className="flex-1 bg-[#0a0a0c] text-[#fcfdff] border border-[rgba(255,255,255,0.14)] rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#fcfdff] placeholder:text-[#464a4d]"
+            className="flex-1 bg-[#0a0a0c] text-[#fcfdff] border border-[rgba(255,255,255,0.14)] rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#3b9eff] focus:shadow-[0_0_12px_rgba(59,158,255,0.15)] placeholder:text-[#464a4d] transition-all duration-200"
           />
           <Button onClick={sendMessage} disabled={loading || !input.trim()}>
             Send

@@ -56,7 +56,12 @@ export default function SignupPage() {
   if (success) {
     return (
       <div className="min-h-screen bg-[#000000] flex items-center justify-center px-4">
-        <div className="text-center">
+        <div className="animate-scale-in text-center">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[rgba(17,255,153,0.1)] flex items-center justify-center">
+            <svg className="w-8 h-8 text-[#11ff99]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
           <h1 className="text-2xl font-medium text-[#fcfdff] mb-2">Check your email</h1>
           <p className="text-sm text-[#a1a4a5]">
             We sent a confirmation link to <span className="text-[#fcfdff]">{email}</span>
@@ -70,19 +75,20 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#000000] flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
+    <div className="min-h-screen bg-[#000000] flex items-center justify-center px-4 relative">
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(168,85,247,0.06)_0%,transparent_70%)] rounded-full animate-glow-pulse pointer-events-none" />
+      <div className="w-full max-w-sm relative">
+        <div className="animate-fade-in-down text-center mb-8">
           <h1 className="text-2xl font-medium text-[#fcfdff] mb-2">Create your account</h1>
           <p className="text-sm text-[#a1a4a5]">
             Already have an account?{' '}
-            <Link href="/login" className="text-[#3b9eff] hover:underline">
+            <Link href="/login" className="text-[#3b9eff] hover:underline transition-colors duration-200">
               Sign in
             </Link>
           </p>
         </div>
 
-        <form onSubmit={handleSignup} className="space-y-4">
+        <form onSubmit={handleSignup} className="space-y-4 animate-fade-in-up delay-200">
           <Input
             label="Email"
             type="email"
@@ -100,14 +106,16 @@ export default function SignupPage() {
             required
           />
 
-          {error && <p className="text-sm text-[#ff2047]">{error}</p>}
+          {error && (
+            <p className="text-sm text-[#ff2047] animate-fade-in-down">{error}</p>
+          )}
 
-          <Button type="submit" className="w-full" disabled={loading || !mounted}>
+          <Button type="submit" className="w-full transition-all duration-200 hover:scale-[1.02]" disabled={loading || !mounted}>
             {loading ? 'Creating account...' : 'Sign up'}
           </Button>
         </form>
 
-        <div className="relative my-6">
+        <div className="relative my-6 animate-fade-in delay-400">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-[rgba(255,255,255,0.06)]" />
           </div>
@@ -116,9 +124,11 @@ export default function SignupPage() {
           </div>
         </div>
 
-        <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={!mounted}>
-          Continue with Google
-        </Button>
+        <div className="animate-fade-in-up delay-500">
+          <Button variant="outline" className="w-full transition-all duration-200 hover:scale-[1.02]" onClick={handleGoogleLogin} disabled={!mounted}>
+            Continue with Google
+          </Button>
+        </div>
       </div>
     </div>
   )

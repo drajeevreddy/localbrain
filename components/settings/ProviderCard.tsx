@@ -56,12 +56,12 @@ export default function ProviderCard({
         </div>
         <button
           onClick={() => onToggle(!enabled)}
-          className={`relative w-11 h-6 rounded-full transition-colors ${
-            enabled ? 'bg-[#11ff99]' : 'bg-[#464a4d]'
+          className={`relative w-11 h-6 rounded-full transition-all duration-300 ${
+            enabled ? 'bg-[#11ff99] shadow-[0_0_12px_rgba(17,255,153,0.3)]' : 'bg-[#464a4d]'
           }`}
         >
           <span
-            className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+            className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
               enabled ? 'translate-x-5' : ''
             }`}
           />
@@ -69,13 +69,13 @@ export default function ProviderCard({
       </div>
 
       {enabled && (
-        <div className="space-y-3">
+        <div className="space-y-3 animate-fade-in-up">
           <div>
             <label className="text-xs text-[#a1a4a5] mb-1 block">Model</label>
             <select
               value={model}
               onChange={(e) => onModelChange(e.target.value)}
-              className="w-full bg-[#0a0a0c] text-[#fcfdff] border border-[rgba(255,255,255,0.14)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#fcfdff]"
+              className="w-full bg-[#0a0a0c] text-[#fcfdff] border border-[rgba(255,255,255,0.14)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3b9eff] focus:shadow-[0_0_12px_rgba(59,158,255,0.15)] transition-all duration-200"
             >
               {models.map((m) => (
                 <option key={m} value={m}>

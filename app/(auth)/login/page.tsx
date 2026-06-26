@@ -52,19 +52,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#000000] flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
+    <div className="min-h-screen bg-[#000000] flex items-center justify-center px-4 relative">
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(59,158,255,0.06)_0%,transparent_70%)] rounded-full animate-glow-pulse pointer-events-none" />
+      <div className="w-full max-w-sm relative">
+        <div className="animate-fade-in-down text-center mb-8">
           <h1 className="text-2xl font-medium text-[#fcfdff] mb-2">Sign in to LocalMind</h1>
           <p className="text-sm text-[#a1a4a5]">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-[#3b9eff] hover:underline">
+            <Link href="/signup" className="text-[#3b9eff] hover:underline transition-colors duration-200">
               Sign up
             </Link>
           </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-4 animate-fade-in-up delay-200">
           <Input
             label="Email"
             type="email"
@@ -82,14 +83,16 @@ export default function LoginPage() {
             required
           />
 
-          {error && <p className="text-sm text-[#ff2047]">{error}</p>}
+          {error && (
+            <p className="text-sm text-[#ff2047] animate-fade-in-down">{error}</p>
+          )}
 
-          <Button type="submit" className="w-full" disabled={loading || !mounted}>
+          <Button type="submit" className="w-full transition-all duration-200 hover:scale-[1.02]" disabled={loading || !mounted}>
             {loading ? 'Signing in...' : 'Sign in'}
           </Button>
         </form>
 
-        <div className="relative my-6">
+        <div className="relative my-6 animate-fade-in delay-400">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-[rgba(255,255,255,0.06)]" />
           </div>
@@ -98,9 +101,11 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={!mounted}>
-          Continue with Google
-        </Button>
+        <div className="animate-fade-in-up delay-500">
+          <Button variant="outline" className="w-full transition-all duration-200 hover:scale-[1.02]" onClick={handleGoogleLogin} disabled={!mounted}>
+            Continue with Google
+          </Button>
+        </div>
       </div>
     </div>
   )

@@ -59,6 +59,8 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick }: KnowledgeG
           fontSize: '13px',
           color: '#fcfdff',
           minWidth: 80,
+          cursor: 'pointer',
+          transition: 'box-shadow 0.2s ease, transform 0.2s ease',
         },
       })),
     [nodes]
@@ -71,14 +73,17 @@ export default function KnowledgeGraph({ nodes, edges, onNodeClick }: KnowledgeG
         source: e.source_node_id,
         target: e.target_node_id,
         label: e.relationship,
+        animated: true,
         style: {
           stroke: 'rgba(255,255,255,0.14)',
           strokeWidth: Math.max(1, e.weight),
+          transition: 'stroke 0.2s ease',
         },
         labelStyle: {
           fill: '#a1a4a5',
           fontSize: 10,
         },
+        type: 'smoothstep',
       })),
     [edges]
   )
