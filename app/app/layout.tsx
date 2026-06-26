@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button'
 import NoteEditor from '@/components/notes/NoteEditor'
 import NoteTemplates from '@/components/notes/NoteTemplates'
 import StudyTools from '@/components/study/StudyTools'
+import CorporateTools from '@/components/corporate/CorporateTools'
 import PomodoroTimer from '@/components/study/PomodoroTimer'
 import ToastProvider from '@/components/ui/ToastProvider'
 import toast from 'react-hot-toast'
@@ -359,7 +360,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <NoteEditor note={selectedNote} onSave={handleSaveNote} onDelete={() => handleDeleteNote()} />
               </div>
               {selectedNote.content.trim().length > 50 && (
-                <StudyTools content={selectedNote.content} />
+                <div className="flex flex-col">
+                  <StudyTools content={selectedNote.content} />
+                  <CorporateTools content={selectedNote.content} />
+                </div>
               )}
             </div>
           ) : (
