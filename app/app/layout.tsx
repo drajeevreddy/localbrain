@@ -6,10 +6,14 @@ import Link from 'next/link'
 import Button from '@/components/ui/Button'
 import NoteEditor from '@/components/notes/NoteEditor'
 import NoteTemplates from '@/components/notes/NoteTemplates'
+import SmartSearch from '@/components/notes/SmartSearch'
+import ExportNotes from '@/components/notes/ExportNotes'
+import NoteTagManager from '@/components/notes/NoteTagManager'
 import StudyTools from '@/components/study/StudyTools'
 import CorporateTools from '@/components/corporate/CorporateTools'
 import PomodoroTimer from '@/components/study/PomodoroTimer'
 import ToastProvider from '@/components/ui/ToastProvider'
+import { useKeyboardShortcuts } from '@/components/ui/KeyboardShortcuts'
 import toast from 'react-hot-toast'
 
 interface Note {
@@ -212,6 +216,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     router.push('/login')
   }
 
+  useKeyboardShortcuts({
+    onSave: selectedNote ? () => handleSaveNote(selectedNote.title, selectedNote.content) : undefined,
+    onNewNote: handleNewNote,
+    onDelete: selectedNote ? () => handleDeleteNote() : undefined,
+  })
+
   const Sidebar = () => (
     <div className="flex flex-col h-full">
       <div className="p-3 md:p-4 border-b border-[rgba(255,255,255,0.06)]">
@@ -228,6 +238,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full bg-[#0a0a0c] text-[#fcfdff] border border-[rgba(255,255,255,0.14)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3b9eff] focus:shadow-[0_0_12px_rgba(59,158,255,0.15)] placeholder:text-[#464a4d] transition-all duration-200"
         />
+        <SmartSearch onNavigate={(id) => { const note = notes.find((n) => n.id === id); if (note) { setSelectedNote(note); setSidebarOpen(false) } }} />
       </div>
 
       <div className="p-2 space-y-1">
@@ -346,10 +357,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {selectedNote && (
-          <div className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 border-b border-[rgba(255,255,255,0.06)]">
+          <div className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 border-b border-[rgba(255,255,255,0.06)] flex-wrap">
             <Button variant="ghost" size="sm" onClick={() => handleIngest()} disabled={ingesting}>
               {ingesting ? 'Ingesting...' : 'Ingest to Graph'}
             </Button>
+            <div className="flex-1" />
+            <NoteTagManager noteId={selectedNote.id} />
+            <ExportNotes notes={notes} selectedNote={selectedNote} />
           </div>
         )}
 
