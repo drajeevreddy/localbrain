@@ -76,9 +76,9 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-[#000000] flex items-center justify-center px-4 relative">
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(168,85,247,0.06)_0%,transparent_70%)] rounded-full animate-glow-pulse pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-[radial-gradient(circle,rgba(168,85,247,0.06)_0%,transparent_70%)] rounded-full animate-glow-pulse pointer-events-none" />
       <div className="w-full max-w-sm relative">
-        <div className="animate-fade-in-down text-center mb-8">
+        <div className="animate-fade-in-down text-center mb-6 md:mb-8">
           <h1 className="text-2xl font-medium text-[#fcfdff] mb-2">Create your account</h1>
           <p className="text-sm text-[#a1a4a5]">
             Already have an account?{' '}

@@ -98,33 +98,28 @@ export default function GraphPage() {
       </div>
 
       {selectedNode && (
-        <div className="w-72 border-l border-[rgba(255,255,255,0.06)] p-4 overflow-auto animate-fade-in-left">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-medium">{selectedNode.label}</h3>
-            <button
-              onClick={() => setSelectedNode(null)}
-              className="text-[#464a4d] hover:text-[#fcfdff] transition-colors"
-            >
-              ×
+        <>
+          <div className="fixed inset-0 bg-black/60 z-40 md:hidden" onClick={() => setSelectedNode(null)} />
+          <div className="fixed bottom-0 left-0 right-0 md:static md:w-72 z-50 md:z-auto border-t md:border-t-0 md:border-l border-[rgba(255,255,255,0.06)] p-4 overflow-auto animate-slide-up md:animate-fade-in-left bg-[#000000] md:bg-transparent max-h-[60vh] md:max-h-none rounded-t-xl md:rounded-none">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-medium">{selectedNode.label}</h3>
+              <button onClick={() => setSelectedNode(null)} className="text-[#464a4d] hover:text-[#fcfdff] transition-colors">x</button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <span className="text-xs text-[#a1a4a5]">Type</span>
+                <p className="text-sm capitalize">{selectedNode.type}</p>
+              </div>
+              <div>
+                <span className="text-xs text-[#a1a4a5]">Connections</span>
+                <p className="text-sm">{selectedNode.degree}</p>
+              </div>
+            </div>
+            <button onClick={handleDeleteNode} className="mt-6 w-full px-3 py-2 text-xs font-medium text-[#ff2047] bg-[rgba(255,32,71,0.08)] hover:bg-[rgba(255,32,71,0.15)] rounded-lg transition-all duration-200">
+              Delete Node
             </button>
           </div>
-          <div className="space-y-3">
-            <div>
-              <span className="text-xs text-[#a1a4a5]">Type</span>
-              <p className="text-sm capitalize">{selectedNode.type}</p>
-            </div>
-            <div>
-              <span className="text-xs text-[#a1a4a5]">Connections</span>
-              <p className="text-sm">{selectedNode.degree}</p>
-            </div>
-          </div>
-          <button
-            onClick={handleDeleteNode}
-            className="mt-6 w-full px-3 py-2 text-xs font-medium text-[#ff2047] bg-[rgba(255,32,71,0.08)] hover:bg-[rgba(255,32,71,0.15)] rounded-lg transition-all duration-200"
-          >
-            Delete Node
-          </button>
-        </div>
+        </>
       )}
     </div>
   )

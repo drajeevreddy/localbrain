@@ -108,7 +108,7 @@ export default function SettingsPage() {
   const activeProvider = configs.find((c) => c.enabled && c.hasKey)?.name ?? defaultProvider
 
   return (
-    <div className="max-w-2xl mx-auto p-8">
+    <div className="max-w-2xl mx-auto p-4 md:p-8">
       <h1 className="text-2xl font-medium mb-2">Settings</h1>
       <p className="text-sm text-[#a1a4a5] mb-8">Configure your LLM providers and API keys.</p>
 

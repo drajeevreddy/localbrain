@@ -22,6 +22,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<{ provider: string; apiKey: string }>({ provider: 'nvidia', apiKey: '' })
   const [mounted, setMounted] = useState(false)
   const [ingesting, setIngesting] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
   const supabaseRef = useRef<Awaited<ReturnType<typeof import('@/lib/supabase/client').createClient>> | null>(null)
 
@@ -95,6 +96,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     if (data) {
       setNotes([data, ...notes])
       setSelectedNote(data)
+      setSidebarOpen(false)
       toast.success('Note created')
     }
   }
@@ -161,7 +163,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         const data = await res.json()
         toast.success(`Ingested: ${data.chunksCreated} chunks, ${data.entitiesExtracted} entities`)
       } else {
-        toast.error('Ingestion failed')
+        const err = await res.json()
+        toast.error(err.error || 'Ingestion failed')
       }
     } catch {
       toast.error('Ingestion failed')
@@ -171,11 +174,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   const handleBatchIngest = async () => {
-    if (!settings.apiKey) {
-      toast.error('Configure an LLM provider in Settings first')
-      return
-    }
-
     const notesToIngest = notes.filter((n) => n.content.trim().length > 0)
     if (notesToIngest.length === 0) {
       toast.error('No notes with content to ingest')
@@ -210,138 +208,150 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     router.push('/login')
   }
 
+  const Sidebar = () => (
+    <div className="flex flex-col h-full">
+      <div className="p-3 md:p-4 border-b border-[rgba(255,255,255,0.06)]">
+        <div className="flex items-center justify-between mb-3">
+          <span className="font-semibold text-sm md:text-base">LocalBrain</span>
+          <Button variant="ghost" size="sm" onClick={handleLogout}>
+            Logout
+          </Button>
+        </div>
+        <input
+          type="text"
+          placeholder="Search notes..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full bg-[#0a0a0c] text-[#fcfdff] border border-[rgba(255,255,255,0.14)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3b9eff] focus:shadow-[0_0_12px_rgba(59,158,255,0.15)] placeholder:text-[#464a4d] transition-all duration-200"
+        />
+      </div>
+
+      <div className="p-2 space-y-1">
+        <Button variant="primary" size="sm" className="w-full" onClick={handleNewNote}>
+          + New Note
+        </Button>
+        {notes.length > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full"
+            onClick={handleBatchIngest}
+            disabled={ingesting}
+          >
+            {ingesting ? 'Ingesting...' : `Batch Ingest (${notes.length})`}
+          </Button>
+        )}
+      </div>
+
+      <div className="flex-1 overflow-auto p-2 space-y-1">
+        {filteredNotes.map((note) => (
+          <div
+            key={note.id}
+            className={`group relative flex items-center rounded-lg transition-all duration-200 ${
+              selectedNote?.id === note.id
+                ? 'bg-[#101012] text-[#fcfdff]'
+                : 'text-[#a1a4a5] hover:bg-[#0a0a0c] hover:text-[#fcfdff]'
+            }`}
+          >
+            <button
+              onClick={() => { setSelectedNote(note); setSidebarOpen(false) }}
+              className="flex-1 text-left px-3 py-2 text-sm"
+            >
+              <div className="font-medium truncate">{note.title || 'Untitled'}</div>
+              <div className="text-xs text-[#464a4d] truncate mt-0.5">
+                {note.content.slice(0, 60) || 'Empty note'}
+              </div>
+            </button>
+            <div className="absolute right-1 top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-0.5 pr-1">
+              <button
+                onClick={(e) => { e.stopPropagation(); handleIngest(note.id) }}
+                className="p-1 rounded hover:bg-[rgba(59,158,255,0.1)] text-[#3b9eff] transition-colors"
+                title="Ingest"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id) }}
+                className="p-1 rounded hover:bg-[rgba(255,32,71,0.1)] text-[#ff2047] transition-colors"
+                title="Delete"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="p-2 border-t border-[rgba(255,255,255,0.06)] space-y-1">
+        <Link href="/app/graph" onClick={() => setSidebarOpen(false)}
+          className="block px-3 py-2 rounded-lg text-sm text-[#a1a4a5] hover:bg-[#0a0a0c] hover:text-[#fcfdff] transition-colors">
+          Knowledge Graph
+        </Link>
+        <Link href="/app/chat" onClick={() => setSidebarOpen(false)}
+          className="block px-3 py-2 rounded-lg text-sm text-[#a1a4a5] hover:bg-[#0a0a0c] hover:text-[#fcfdff] transition-colors">
+          Chat
+        </Link>
+        <Link href="/app/settings" onClick={() => setSidebarOpen(false)}
+          className="block px-3 py-2 rounded-lg text-sm text-[#a1a4a5] hover:bg-[#0a0a0c] hover:text-[#fcfdff] transition-colors">
+          Settings
+        </Link>
+      </div>
+    </div>
+  )
+
   return (
     <div className="flex h-screen bg-[#000000] text-[#fcfdff]">
       <ToastProvider />
-      <div className="w-64 border-r border-[rgba(255,255,255,0.06)] flex flex-col">
-        <div className="p-4 border-b border-[rgba(255,255,255,0.06)]">
-          <div className="flex items-center justify-between mb-3">
-            <span className="font-semibold">LocalBrain</span>
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
-              Logout
-            </Button>
-          </div>
-          <input
-            type="text"
-            placeholder="Search notes..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#0a0a0c] text-[#fcfdff] border border-[rgba(255,255,255,0.14)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#3b9eff] focus:shadow-[0_0_12px_rgba(59,158,255,0.15)] placeholder:text-[#464a4d] transition-all duration-200"
-          />
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar - hidden on mobile, toggle with hamburger */}
+      <div className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#000000] border-r border-[rgba(255,255,255,0.06)] transform transition-transform duration-200 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+      }`}>
+        <Sidebar />
+      </div>
+
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Mobile top bar */}
+        <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[rgba(255,255,255,0.06)] md:hidden">
+          <button onClick={() => setSidebarOpen(true)} className="p-1.5 rounded-lg hover:bg-[#101012] transition-colors">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <span className="font-semibold text-sm">LocalBrain</span>
         </div>
 
-        <div className="p-2 space-y-1">
-          <Button variant="primary" size="sm" className="w-full" onClick={handleNewNote}>
-            + New Note
-          </Button>
-          {notes.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full"
-              onClick={handleBatchIngest}
-              disabled={ingesting}
-            >
-              {ingesting ? 'Ingesting...' : `Batch Ingest (${notes.length})`}
+        {selectedNote && (
+          <div className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 border-b border-[rgba(255,255,255,0.06)]">
+            <Button variant="ghost" size="sm" onClick={() => handleIngest()} disabled={ingesting}>
+              {ingesting ? 'Ingesting...' : 'Ingest to Graph'}
             </Button>
+          </div>
+        )}
+
+        <div className="flex-1 overflow-hidden">
+          {selectedNote ? (
+            <NoteEditor note={selectedNote} onSave={handleSaveNote} onDelete={() => handleDeleteNote()} />
+          ) : (
+            <div className="flex-1 flex items-center justify-center h-full text-[#464a4d] text-sm">
+              Select a note or create a new one
+            </div>
           )}
         </div>
 
-        <div className="flex-1 overflow-auto p-2 space-y-1">
-          {filteredNotes.map((note) => (
-            <div
-              key={note.id}
-              className={`group relative flex items-center rounded-lg transition-all duration-200 ${
-                selectedNote?.id === note.id
-                  ? 'bg-[#101012] text-[#fcfdff]'
-                  : 'text-[#a1a4a5] hover:bg-[#0a0a0c] hover:text-[#fcfdff]'
-              }`}
-            >
-              <button
-                onClick={() => setSelectedNote(note)}
-                className="flex-1 text-left px-3 py-2 text-sm"
-              >
-                <div className="font-medium truncate">{note.title || 'Untitled'}</div>
-                <div className="text-xs text-[#464a4d] truncate mt-0.5">
-                  {note.content.slice(0, 60) || 'Empty note'}
-                </div>
-              </button>
-              <div className="absolute right-1 top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-0.5 pr-1">
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleIngest(note.id) }}
-                  className="p-1 rounded hover:bg-[rgba(59,158,255,0.1)] text-[#3b9eff] transition-colors"
-                  title="Ingest to graph"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id) }}
-                  className="p-1 rounded hover:bg-[rgba(255,32,71,0.1)] text-[#ff2047] transition-colors"
-                  title="Delete note"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="p-2 border-t border-[rgba(255,255,255,0.06)] space-y-1">
-          <Link
-            href="/app/graph"
-            className="block px-3 py-2 rounded-lg text-sm text-[#a1a4a5] hover:bg-[#0a0a0c] hover:text-[#fcfdff] transition-colors"
-          >
-            Knowledge Graph
-          </Link>
-          <Link
-            href="/app/chat"
-            className="block px-3 py-2 rounded-lg text-sm text-[#a1a4a5] hover:bg-[#0a0a0c] hover:text-[#fcfdff] transition-colors"
-          >
-            Chat
-          </Link>
-          <Link
-            href="/app/settings"
-            className="block px-3 py-2 rounded-lg text-sm text-[#a1a4a5] hover:bg-[#0a0a0c] hover:text-[#fcfdff] transition-colors"
-          >
-            Settings
-          </Link>
-        </div>
-      </div>
-
-      <div className="flex-1 flex flex-col">
-        {selectedNote && (
-          <div className="flex-1 flex flex-col">
-            <div className="flex items-center gap-2 px-6 py-3 border-b border-[rgba(255,255,255,0.06)]">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleIngest()}
-                disabled={ingesting}
-              >
-                {ingesting ? 'Ingesting...' : 'Ingest to Graph'}
-              </Button>
-            </div>
-            <div className="flex-1">
-              <NoteEditor
-                note={selectedNote}
-                onSave={handleSaveNote}
-                onDelete={() => handleDeleteNote()}
-              />
-            </div>
-          </div>
-        )}
-
-        {!selectedNote && (
-          <div className="flex-1 flex items-center justify-center text-[#464a4d]">
-            Select a note or create a new one
-          </div>
-        )}
-
-        {children}
+        {!selectedNote && children}
       </div>
     </div>
   )
