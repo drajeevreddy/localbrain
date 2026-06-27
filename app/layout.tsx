@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/react";
 import ToastProvider from "@/components/ui/ToastProvider";
 
 const inter = Inter({
@@ -31,6 +32,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-[#000000] text-[#fcfdff]">
         <ToastProvider />
         {children}
+        <Analytics />
       </body>
     </html>
   );
