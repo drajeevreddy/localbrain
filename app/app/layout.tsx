@@ -213,8 +213,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const handleLogout = async () => {
     const supabase = getSupabase()
-    if (supabase) await supabase.auth.signOut()
-    router.push('/login')
+    if (supabase) {
+      await supabase.auth.signOut({ scope: 'global' })
+    }
+    window.location.href = '/login'
   }
 
   useKeyboardShortcuts({
@@ -346,25 +348,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {selectedNote && (
-          <div className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 border-b border-[rgba(255,255,255,0.06)] flex-wrap">
-            <Button variant="ghost" size="sm" onClick={() => handleIngest()} disabled={ingesting}>
-              {ingesting ? 'Ingesting...' : 'Ingest to Graph'}
+          <div className="flex items-center gap-1.5 px-3 md:px-6 py-2 md:py-3 border-b border-[rgba(255,255,255,0.06)] overflow-x-auto">
+            <Button variant="ghost" size="sm" onClick={() => handleIngest()} disabled={ingesting} className="shrink-0">
+              {ingesting ? '...' : 'Ingest'}
             </Button>
             <UrlImporter onImport={(title, content) => { handleSaveNote(title, content) }} />
-            <div className="flex-1" />
+            <div className="flex-1 min-w-2" />
             <NoteTagManager noteId={selectedNote.id} />
             <ExportNotes notes={notes} selectedNote={selectedNote} />
           </div>
         )}
 
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-auto min-h-0">
           {selectedNote ? (
             <div className="flex flex-col h-full">
-              <div className="flex-1 overflow-auto">
+              <div className="flex-1 overflow-auto min-h-0">
                 <NoteEditor note={selectedNote} onSave={handleSaveNote} onDelete={() => handleDeleteNote()} />
               </div>
               {selectedNote.content.trim().length > 50 && (
-                <div className="flex flex-col">
+                <div className="flex flex-col border-t border-[rgba(255,255,255,0.06)]">
                   <StudyTools content={selectedNote.content} />
                   <CorporateTools content={selectedNote.content} />
                 </div>
