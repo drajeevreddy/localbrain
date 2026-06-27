@@ -37,14 +37,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     setMounted(true)
     import('@/lib/supabase/client').then(({ createClient }) => {
       supabaseRef.current = createClient()
+      // Fetch data immediately after client is ready
+      fetchNotesData(supabaseRef.current)
+      fetchSettings()
     }).catch(() => {})
   }, [])
 
   const getSupabase = useCallback(() => supabaseRef.current, [])
 
-  const fetchNotes = useCallback(async () => {
-    const supabase = getSupabase()
-    if (!supabase) return
+  const fetchNotesData = async (supabase: NonNullable<typeof supabaseRef.current>) => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -55,6 +56,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       .order('updated_at', { ascending: false })
 
     if (data) setNotes(data)
+  }
+
+  const fetchNotes = useCallback(async () => {
+    const supabase = getSupabase()
+    if (!supabase) return
+    await fetchNotesData(supabase)
   }, [getSupabase])
 
   const fetchSettings = useCallback(async () => {
@@ -71,12 +78,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       }
     } catch {}
   }, [])
-
-  useEffect(() => {
-    if (!mounted) return
-    fetchNotes()
-    fetchSettings()
-  }, [mounted, fetchNotes, fetchSettings])
 
   const filteredNotes = notes.filter((n) =>
     n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
