@@ -1,36 +1,193 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LocalBrain
+
+> Your knowledge, connected.
+
+LocalBrain is an AI-powered knowledge graph app that turns your notes into a living, connected knowledge base with intelligent search and chat.
+
+**Live App:** [https://www.localbrain.in](https://www.localbrain.in)
+
+![LocalBrain Hero](public/screenshot.png)
+
+---
+
+## Features
+
+### Core
+- **Notes** — Create, edit, and organize notes with Markdown support
+- **Knowledge Graph** — Interactive graph visualization with React Flow
+- **RAG Chat** — Chat with your notes using AI-powered retrieval
+- **PDF Import** — Upload PDFs and extract text automatically
+- **Multi-Provider LLM** — 10+ providers with encrypted API key storage
+
+### Student Tools
+- **Flashcard Generator** — Create study flashcards from any note
+- **Quiz Generator** — Multiple choice quizzes with scoring
+- **Study Summary** — AI-generated overviews with key concepts
+- **Key Points** — Extract the most important facts
+
+### Corporate Tools
+- **Email Draft** — Generate professional emails and replies
+- **Action Items** — Extract tasks with assignees and priorities
+- **Meeting Summary** — Structured meeting notes
+- **Project Status** — Generate status updates
+- **Presentation Outline** — Create slide decks with speaker notes
+- **Reports** — Weekly, executive, and client summaries
+- **Decision Log** — Track decisions with rationale
+
+### Productivity
+- **Smart Search** — AI-powered semantic search across notes
+- **Tags System** — Color-coded tags for organization
+- **Export** — Markdown, Text, HTML, JSON formats
+- **Note Templates** — 12 templates for students and professionals
+- **Pomodoro Timer** — Built-in focus timer
+- **Voice Input** — Speech-to-text in the editor
+- **Keyboard Shortcuts** — Ctrl+S, Ctrl+N, Ctrl+K
+
+---
+
+## Tech Stack
+
+- **Frontend:** Next.js 16 (App Router) + Tailwind CSS
+- **Backend:** Next.js API Routes (Edge-compatible)
+- **Database:** Supabase (PostgreSQL + pgvector)
+- **Auth:** Supabase Auth (Email + Google OAuth)
+- **Graph:** React Flow (@xyflow/react)
+- **Design:** Resend-inspired dark theme
+
+---
+
+## Supported LLM Providers
+
+| Provider | Embedding | Free Tier |
+|----------|-----------|-----------|
+| NVIDIA NIM | Yes | 40 RPM |
+| Groq | No | 30 RPM |
+| Google Gemini | No | 60 RPM |
+| OpenRouter | No | 50+ free models |
+| Together AI | Yes | 60 RPM |
+| Cohere | Yes | 20 RPM |
+| Cerebras | No | 30 RPM |
+| Hugging Face | Yes | 30 RPM |
+| Ollama (local) | Yes | Unlimited |
+| Mistral | No | Yes |
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/animeprints/localbrain.git
+cd localbrain
+npm install
+```
+
+### 2. Set up Supabase
+
+1. Create a project at [supabase.com](https://supabase.com)
+2. Run the migration SQL from `supabase/migrations/`
+3. Enable Email Auth in Dashboard → Authentication → Providers → Email
+
+### 3. Configure environment
+
+Create `.env.local`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SETTINGS_ENCRYPTION_KEY=your-32-char-random-string
+```
+
+### 4. Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deployment
 
-## Learn More
+### Vercel
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+vercel --prod
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Or connect your GitHub repo to Vercel and set environment variables in the dashboard.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Environment Variables (Vercel)
 
-## Deploy on Vercel
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key |
+| `SETTINGS_ENCRYPTION_KEY` | 32-char key for AES-256 encryption |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project Structure
+
+```
+localbrain/
+├── app/
+│   ├── (auth)/          # Login & Signup pages
+│   ├── api/             # API routes
+│   │   ├── chat/        # RAG chat endpoint
+│   │   ├── corporate/   # Corporate tools
+│   │   ├── graph/       # Knowledge graph
+│   │   ├── notes/       # Note CRUD + ingest
+│   │   ├── search/      # Smart search
+│   │   ├── settings/    # Provider settings
+│   │   ├── study/       # Study tools
+│   │   └── tags/        # Tag management
+│   └── app/             # Protected app pages
+├── components/
+│   ├── chat/            # Chat UI
+│   ├── corporate/       # Corporate tools
+│   ├── graph/           # Knowledge graph
+│   ├── notes/           # Note editor, templates
+│   ├── study/           # Study tools, timer
+│   └── ui/              # Shared components
+├── lib/
+│   ├── llm/             # Multi-provider LLM adapter
+│   └── supabase/        # Supabase client setup
+└── supabase/
+    └── migrations/      # Database migrations
+```
+
+---
+
+## Database Schema
+
+- **notes** — User notes with content
+- **chunks** — Text chunks with pgvector embeddings
+- **graph_nodes** — Knowledge graph nodes (concept/entity/tag)
+- **graph_edges** — Relationships between nodes
+- **user_settings** — Encrypted provider configurations
+- **note_tags** — Tag definitions
+- **note_tag_relations** — Note-tag associations
+
+---
+
+## Security
+
+- API keys encrypted with AES-256 before storage
+- Row Level Security (RLS) on all tables
+- Auth middleware on all protected routes
+- No API keys exposed in client responses
+
+---
+
+## License
+
+MIT
+
+---
+
+Built with Next.js, Supabase, and ❤️
